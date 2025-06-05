@@ -1,5 +1,5 @@
 {
-	"name": "netman-gui",
+	"name": "mydaemon",
 	"module": "index.ts",
 	"type": "module",
 	"private": true,

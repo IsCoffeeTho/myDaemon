@@ -1,4 +1,4 @@
-# netman-gui
+# myDaemon
 
 To install dependencies:
 
