@@ -1,23 +1,27 @@
 import { cfg } from "../config";
-import type hyprEvents from "../hypr/hyprland";
+import type hyprland from "../hypr/hyprland";
 
 var oneshotwindows: { [_: string]: string[] } = {
 
 };
 
-export default async function oneshotService(hyprev: hyprEvents) {
+export default async function oneshotService(hyprl: hyprland) {
 	for (var oneshotID in cfg.oneshots) {
 		var oneshotdata = cfg.oneshots[oneshotID];
-		
-		var workspaceCommand = ["hyprctl", "--batch", [
-			`keyword workspace name:${oneshotdata.workspace},gapsout:0,gapsin:0,bordersize:0,persistent:false`,
-			`keyword windowrule workspace name:${oneshotdata.workspace},class:${oneshotdata.class}`
-		].join(" ; ")];
-		
-		Bun.spawnSync(workspaceCommand);
+
+		hyprl.batch().keyword("workspace",
+			`name:${oneshotdata.workspace}`,
+			"gapsout:0",
+			"gapsin:0",
+			"bordersize:0",
+			"persistent:false"
+		).keyword("windowrule",
+			`workspace name:${oneshotdata.workspace}`,
+			`class:${oneshotdata.class}`
+		).issue();
 	};
 
-	hyprev.on("openwindow", (data) => {
+	hyprl.events.on("openwindow", (data) => {
 		if (!cfg.oneshots)
 			return;
 		for (var oneshotID in cfg.oneshots) {
@@ -30,7 +34,7 @@ export default async function oneshotService(hyprev: hyprEvents) {
 		}
 	});
 
-	hyprev.on("closewindow", (data) => {
+	hyprl.events.on("closewindow", (data) => {
 		var openOneshots = Object.keys(oneshotwindows);
 		for (var openOneshot of openOneshots) {
 			var oneshotApplications = oneshotwindows[openOneshot];

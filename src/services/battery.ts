@@ -1,8 +1,8 @@
 import notifier from "node-notifier";
 import { cfg } from "../config";
-import type hyprEvents from "../hypr/hyprland";
+import type hyprland from "../hypr/hyprland";
 
-export default async function batteryService(hyprev: hyprEvents) {
+export default async function batteryService(hyprl: hyprland) {
 	var low = false;
 	var critical = false;
 	
