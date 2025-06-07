@@ -1,5 +1,7 @@
 import { EventEmitter } from "events";
 
+const hyprlandEventSocket = `${process.env["XDG_RUNTIME_DIR"]}/hypr/${process.env["HYPRLAND_INSTANCE_SIGNATURE"]}/.socket2.sock`;
+
 export type hyprEventsMap = {
 	"configreloaded": [],
 	"urgent": [{ windowAddr: string }],
@@ -22,12 +24,9 @@ export type hyprEventsMap = {
 export default class hyprEvents extends EventEmitter<hyprEventsMap> {
 	constructor() {
 		super();
-		const HIS = process.env["HYPRLAND_INSTANCE_SIGNATURE"];
-		const XDG_RUNTIME_DIR = process.env["XDG_RUNTIME_DIR"];
-		const hypreventSocket = `${XDG_RUNTIME_DIR}/hypr/${HIS}/.socket2.sock`;
 		var _this = this;
 		Bun.connect({
-			unix: hypreventSocket,
+			unix: hyprlandEventSocket,
 			socket: {
 				data(socket, data) {
 					var events = data.toString().match(/.+/g) || [];
