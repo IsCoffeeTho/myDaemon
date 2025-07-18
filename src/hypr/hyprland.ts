@@ -96,7 +96,7 @@ export default class hyprland extends commandHandler {
 	#issuer: ((...cmd: string[]) => string);
 	constructor() {
 		var issuer = (...cmd: string[]) => {
-			return Bun.spawnSync(['hyprctl', ...cmd], {}).stdout.toString();
+			return Bun.spawnSync(['hyprctl', ...cmd], {stderr:"ignore",stdout:"pipe"}).stdout.toString();
 		};
 		super(issuer);
 		this.#issuer = issuer;
