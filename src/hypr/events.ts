@@ -19,6 +19,7 @@ export type hyprEventsMap = {
 	"openwindow": [{ windowAddr: string, workspace: string, class: string, title: string }],
 	"activewindow": [{ class: string, title: string }],
 	"windowtitlev2": [{ windowAddr: string, title: string }]
+	"screencast": [{ arg1: string, arg2: string }]
 };
 
 export default class hyprEvents extends EventEmitter<hyprEventsMap> {
@@ -82,6 +83,12 @@ export default class hyprEvents extends EventEmitter<hyprEventsMap> {
 								_this.emit(eventName, {
 									windowAddr: <string>eventData[0],
 									title: <string>eventData[1]
+								});
+								break;
+							case "screencast":
+								_this.emit(eventName, {
+									arg1: <string>eventData[0],
+									arg2: <string>eventData[1]
 								});
 								break;
 							default:

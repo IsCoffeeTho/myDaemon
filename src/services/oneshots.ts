@@ -2,9 +2,17 @@ import { cfg } from "../config";
 import hyprEvents from "../hypr/events";
 import type hyprland from "../hypr/hyprland";
 
-var oneshotwindows: { [_: string]: string[] } = {
+type oneshotDescriptor = {
+	class: RegExp,
+	workspace: string,
+	windows: string[]
+};
+
+var oneshots: { [id: string]: oneshotDescriptor } = {
 
 };
+
+var currentWorkspace = "";
 
 export default async function oneshotService(hyprl: hyprland) {
 	for (var oneshotID in cfg.oneshots) {
@@ -21,7 +29,12 @@ export default async function oneshotService(hyprl: hyprland) {
 			`class:${oneshotdata.class}`
 		).issue();
 		
-		oneshotdata.class = new RegExp(`^(${oneshotdata.class})$`);
+		oneshots[oneshotID] = {
+			class: new RegExp(`^(${oneshotdata.class})$`),
+			workspace: oneshotdata.workspace,
+			windows: []
+		};
+		
 	};
 	
 	function addOneshotToWatch(data: {
@@ -30,19 +43,16 @@ export default async function oneshotService(hyprl: hyprland) {
 		class: string,
 		title: string,
 	}) {
-		if (!cfg.oneshots)
-			return;
-		for (var oneshotID in cfg.oneshots) {
-			var oneshotdata = cfg.oneshots[oneshotID];
+		for (var oneshotID in oneshots) {
+			var oneshotdata = <oneshotDescriptor>oneshots[oneshotID];
 			if (!oneshotdata.class.test(data.class))
 				continue;
-			if (!oneshotwindows[data.class])
-				oneshotwindows[data.class] = [];
-			(<string[]>oneshotwindows[data.class]).push(data.windowAddr);
+			oneshotdata.windows.push(data.windowAddr);
 			break;
 		}
 	}
 
+	currentWorkspace = hyprl.activeworkspace().name;
 	const openWindows = hyprl.clients();
 	for (var openWindow of openWindows) {
 		addOneshotToWatch({
@@ -55,25 +65,26 @@ export default async function oneshotService(hyprl: hyprland) {
 	hyprl.events.on("openwindow", addOneshotToWatch);
 
 	hyprl.events.on("closewindow", (data) => {
-		var openOneshots = Object.keys(oneshotwindows);
-		for (var openOneshot of openOneshots) {
-			var oneshotApplications = oneshotwindows[openOneshot];
-			if (!oneshotApplications)
-				continue;
-			for (var idx in oneshotApplications) {
-				var applications = oneshotApplications[idx];
+		for (var oneshotID in oneshots) {
+			var oneshot = <oneshotDescriptor>oneshots[oneshotID];
+			for (var idx in oneshot.windows) {
+				var applications = <string>oneshot.windows[idx];
 				if (applications != data.windowAddr)
 					continue;
-				oneshotwindows[openOneshot] = oneshotApplications.filter(v => {
+				oneshot.windows = oneshot.windows.filter(v => {
 					return v != data.windowAddr;
 				});
-				if ((<string[]>oneshotwindows[openOneshot]).length == 0) {
-					hyprl.dispatch("workspace", "m+1");
-					delete oneshotwindows[openOneshot];
+				if (oneshot.windows.length == 0) {
+					if (currentWorkspace == oneshot.workspace)
+						hyprl.dispatch("workspace", "m+1");
 				}
 				return;
 			}
 		}
+	});
+	
+	hyprl.events.on("workspace", (data) => {
+		currentWorkspace = data.name;
 	});
 }
 

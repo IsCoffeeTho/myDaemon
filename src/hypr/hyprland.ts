@@ -114,7 +114,7 @@ export default class hyprland extends commandHandler {
 			issue() {
 				if (commands.length == 0)
 					return;
-				console.log(issuer(`--batch`, `--`, commands.join(" ; ")));
+				issuer(`--batch`, `--`, commands.join(" ; "));
 			}
 		})();
 	}
