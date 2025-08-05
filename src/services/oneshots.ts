@@ -37,7 +37,7 @@ export default async function oneshotService(hyprl: hyprland) {
 		
 	};
 	
-	function addOneshotToWatch(data: {
+	function handleWindow(data: {
 		windowAddr: string,
 		workspace: string,
 		class: string,
@@ -55,14 +55,14 @@ export default async function oneshotService(hyprl: hyprland) {
 	currentWorkspace = hyprl.activeworkspace().name;
 	const openWindows = hyprl.clients();
 	for (var openWindow of openWindows) {
-		addOneshotToWatch({
+		handleWindow({
 			windowAddr: openWindow.address,
 			workspace: openWindow.workspace.name,
 			class: openWindow.class,
 			title: openWindow.title,
 		});
 	}
-	hyprl.events.on("openwindow", addOneshotToWatch);
+	hyprl.events.on("openwindow", handleWindow);
 
 	hyprl.events.on("closewindow", (data) => {
 		for (var oneshotID in oneshots) {
