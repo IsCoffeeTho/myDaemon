@@ -3,13 +3,14 @@ import { cfg } from "../config";
 import type hyprland from "../hypr/hyprland";
 
 enum batteryState {
-	ok,
-	low,
-	critical,
+	OK,
+	FULL,
+	LOW,
+	CRITICAL,
 }
 
 export default async function batteryService(hyprl: hyprland) {
-	var batState = batteryState.ok;
+	var batState = batteryState.OK;
 
 	var upower = Bun.spawn(["upower", "--monitor-detail"], { stdout: "pipe" });
 	var upowerMon = upower.stdout.getReader();
@@ -26,25 +27,33 @@ export default async function batteryService(hyprl: hyprland) {
 				obj[(<string>key[0]).trim()] = <string>key[1];
 			}
 		}
+		// console.log(obj);
+		var percent = parseInt(obj["percentage"] ?? "0%");
 		if (obj["state"] == "discharging") {
-			var percent = parseInt(obj["percentage"] ?? "0%");
-			if (percent <= <number>(<any>cfg.battery).critical && batState < batteryState.critical) {
-				batState = batteryState.critical;
+			if (percent <= <number>(<any>cfg.battery).CRITICAL && batState < batteryState.CRITICAL) {
+				batState = batteryState.CRITICAL;
 				notifier.notify({
 					title: "Battery Critically Low",
 					message: `Charge the device to avoid losing progress.`,
 					urgency: "critical",
 				});
-			} else if (percent <= <number>(<any>cfg.battery).low && batState < batteryState.low) {
-				batState = batteryState.low;
+			} else if (percent <= <number>(<any>cfg.battery).LOW && batState < batteryState.LOW) {
+				batState = batteryState.LOW;
 				notifier.notify({
 					title: "Battery Level Low",
 					message: `Please charge the device soon to avoid losing pogress.`,
 					urgency: "critical",
 				});
 			}
-		} else {
-			batState = batteryState.ok;
+		} else if (obj["state"] != "fully-charged") {
+			batState = batteryState.OK;
+		} else if (batState != batteryState.FULL) {
+			batState = batteryState.FULL;
+			notifier.notify({
+				title: "Battery is Full",
+				message: `You can unplug the device safely.`,
+				urgency: "low",
+			});
 		}
 	}
 }
