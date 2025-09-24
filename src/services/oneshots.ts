@@ -1,4 +1,4 @@
-import { cfg } from "../config";
+import { cfg, type oneshotData, type oneshotOptions } from "../config";
 import hyprEvents from "../hypr/events";
 import type hyprland from "../hypr/hyprland";
 
@@ -9,17 +9,21 @@ type oneshotDescriptor = {
 };
 
 var oneshots: { [id: string]: oneshotDescriptor } = {
-
+	
 };
 
 var currentWorkspace = "";
 
 export default async function oneshotService(hyprl: hyprland) {
+	
+	const defaultMonitor = hyprl.monitors()[0].name
+	
 	for (var oneshotID in cfg.oneshots) {
-		var oneshotdata = cfg.oneshots[oneshotID];
+		var oneshotdata = <oneshotData>cfg.oneshots[oneshotID];
 		
 		hyprl.batch().keyword("workspace",
 			`name:${oneshotdata.workspace}`,
+			`monitor:${oneshotdata.prefferedMonitor ?? defaultMonitor}`,
 			"gapsout:0",
 			"gapsin:0",
 			"bordersize:0",

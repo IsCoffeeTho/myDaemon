@@ -29,14 +29,14 @@ export default async function batteryService(hyprl: hyprland) {
 		}
 		if (obj["state"] == "discharging") {
 			var percent = parseInt(obj["percentage"] ?? "0%");
-			if (percent <= cfg.battery.critical && batState < batteryState.critical) {
+			if (percent <= <number>(<any>cfg.battery).critical && batState < batteryState.critical) {
 				batState = batteryState.critical;
 				notifier.notify({
 					title: "Battery Critically Low",
 					message: `Charge the device to avoid losing progress.`,
 					urgency: "critical"
 				});
-			} else if (percent <= cfg.battery.low && batState < batteryState.low) {
+			} else if (percent <= <number>(<any>cfg.battery).low && batState < batteryState.low) {
 				batState = batteryState.low;
 				notifier.notify({
 					title: "Battery Level Low",

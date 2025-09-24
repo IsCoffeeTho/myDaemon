@@ -1,15 +1,32 @@
 import { readFileSync } from "fs";
 
-export var cfg: any = {};
+export type batteryOptions = {
+	low: number,
+	critical: number
+};
 
-const defaultConfig = {
+export type oneshotData = {
+	workspace: string,
+	class: string,
+	prefferedMonitor?: string
+};
+
+export type oneshotOptions = {
+	[oneshot: string]: oneshotData
+};
+
+export type cfgOptions = {
+	battery: Partial<batteryOptions>,
+	oneshots: Partial<oneshotOptions>
+};
+
+export var cfg: Partial<cfgOptions> = {
 	battery: {
 		low: 10,
 		critical: 5
 	},
 	oneshots: {}
-}
-Object.assign(cfg, defaultConfig);
+};
 
 export function readConfig(cfgFile: string) {
 	var newcfg = {};
