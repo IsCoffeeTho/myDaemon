@@ -3,54 +3,46 @@ import hyprEvents from "../hypr/events";
 import type hyprland from "../hypr/hyprland";
 
 type oneshotDescriptor = {
-	class: RegExp,
-	workspace: string,
-	windows: string[]
+	class: RegExp;
+	workspace: string;
+	windows: string[];
 };
 
-var oneshots: { [id: string]: oneshotDescriptor } = {
-	
-};
+var oneshots: { [id: string]: oneshotDescriptor } = {};
 
 var currentWorkspace = "";
 
 export default async function oneshotService(hyprl: hyprland) {
-	
-	const defaultMonitor = hyprl.monitors()[0].name
-	
+	const defaultMonitor = hyprl.monitors()[0].name;
+
 	for (var oneshotID in cfg.oneshots) {
 		var oneshotdata = <oneshotData>cfg.oneshots[oneshotID];
-		
-		hyprl.batch().keyword("workspace",
-			`name:${oneshotdata.workspace}`,
-			`monitor:${oneshotdata.prefferedMonitor ?? defaultMonitor}`,
-			"gapsout:0",
-			"gapsin:0",
-			"bordersize:0",
-			"persistent:false"
-		).keyword("windowrule",
-			`workspace name:${oneshotdata.workspace}`,
-			`class:${oneshotdata.class}`
-		).issue();
-		
+
+		hyprl
+			.batch()
+			.keyword(
+				"workspace",
+				`name:${oneshotdata.workspace}`,
+				`monitor:${oneshotdata.prefferedMonitor ?? defaultMonitor}`,
+				"gapsout:0",
+				"gapsin:0",
+				"bordersize:0",
+				"persistent:false",
+			)
+			.keyword("windowrule", `workspace name:${oneshotdata.workspace}`, `class:${oneshotdata.class}`)
+			.issue();
+
 		oneshots[oneshotID] = {
 			class: new RegExp(`^(${oneshotdata.class})$`),
 			workspace: oneshotdata.workspace,
-			windows: []
+			windows: [],
 		};
-		
-	};
-	
-	function handleWindow(data: {
-		windowAddr: string,
-		workspace: string,
-		class: string,
-		title: string,
-	}) {
+	}
+
+	function handleWindow(data: { windowAddr: string; workspace: string; class: string; title: string }) {
 		for (var oneshotID in oneshots) {
 			var oneshotdata = <oneshotDescriptor>oneshots[oneshotID];
-			if (!oneshotdata.class.test(data.class))
-				continue;
+			if (!oneshotdata.class.test(data.class)) continue;
 			oneshotdata.windows.push(data.windowAddr);
 			break;
 		}
@@ -68,27 +60,24 @@ export default async function oneshotService(hyprl: hyprland) {
 	}
 	hyprl.events.on("openwindow", handleWindow);
 
-	hyprl.events.on("closewindow", (data) => {
+	hyprl.events.on("closewindow", data => {
 		for (var oneshotID in oneshots) {
 			var oneshot = <oneshotDescriptor>oneshots[oneshotID];
 			for (var idx in oneshot.windows) {
 				var applications = <string>oneshot.windows[idx];
-				if (applications != data.windowAddr)
-					continue;
+				if (applications != data.windowAddr) continue;
 				oneshot.windows = oneshot.windows.filter(v => {
 					return v != data.windowAddr;
 				});
 				if (oneshot.windows.length == 0) {
-					if (currentWorkspace == oneshot.workspace)
-						hyprl.dispatch("workspace", "m+1");
+					if (currentWorkspace == oneshot.workspace) hyprl.dispatch("workspace", "m+1");
 				}
 				return;
 			}
 		}
 	});
-	
-	hyprl.events.on("workspace", (data) => {
+
+	hyprl.events.on("workspace", data => {
 		currentWorkspace = data.name;
 	});
 }
-

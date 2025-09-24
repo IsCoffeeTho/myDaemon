@@ -3,23 +3,23 @@ import { EventEmitter } from "events";
 const hyprlandEventSocket = `${process.env["XDG_RUNTIME_DIR"]}/hypr/${process.env["HYPRLAND_INSTANCE_SIGNATURE"]}/.socket2.sock`;
 
 export type hyprEventsMap = {
-	"configreloaded": [],
-	"urgent": [{ windowAddr: string }],
-	"activewindowv2": [{ windowAddr: string }],
-	"closewindow": [{ windowAddr: string }],
-	"windowtitle": [{ windowAddr: string }],
-	"openlayer": [{ name: string }],
-	"closelayer": [{ name: string }],
-	"workspace": [{ name: string }],
-	"createworkspace": [{ name: string }],
-	"destroyworkspace": [{ name: string }],
-	"workspacev2": [{ workspaceID: string, name: string }],
-	"createworkspacev2": [{ workspaceID: string, name: string }],
-	"destroyworkspacev2": [{ workspaceID: string, name: string }],
-	"openwindow": [{ windowAddr: string, workspace: string, class: string, title: string }],
-	"activewindow": [{ class: string, title: string }],
-	"windowtitlev2": [{ windowAddr: string, title: string }]
-	"screencast": [{ arg1: string, arg2: string }]
+	configreloaded: [];
+	urgent: [{ windowAddr: string }];
+	activewindowv2: [{ windowAddr: string }];
+	closewindow: [{ windowAddr: string }];
+	windowtitle: [{ windowAddr: string }];
+	openlayer: [{ name: string }];
+	closelayer: [{ name: string }];
+	workspace: [{ name: string }];
+	createworkspace: [{ name: string }];
+	destroyworkspace: [{ name: string }];
+	workspacev2: [{ workspaceID: string; name: string }];
+	createworkspacev2: [{ workspaceID: string; name: string }];
+	destroyworkspacev2: [{ workspaceID: string; name: string }];
+	openwindow: [{ windowAddr: string; workspace: string; class: string; title: string }];
+	activewindow: [{ class: string; title: string }];
+	windowtitlev2: [{ windowAddr: string; title: string }];
+	screencast: [{ arg1: string; arg2: string }];
 };
 
 export default class hyprEvents extends EventEmitter<hyprEventsMap> {
@@ -45,7 +45,7 @@ export default class hyprEvents extends EventEmitter<hyprEventsMap> {
 							case "closewindow":
 							case "windowtitle":
 								_this.emit(eventName, {
-									windowAddr: <string>eventData[0]
+									windowAddr: <string>eventData[0],
 								});
 								break;
 							case "openlayer":
@@ -54,7 +54,7 @@ export default class hyprEvents extends EventEmitter<hyprEventsMap> {
 							case "createworkspace":
 							case "destroyworkspace":
 								_this.emit(eventName, {
-									name: <string>eventData[0]
+									name: <string>eventData[0],
 								});
 								break;
 							case "workspacev2":
@@ -62,7 +62,7 @@ export default class hyprEvents extends EventEmitter<hyprEventsMap> {
 							case "destroyworkspacev2":
 								_this.emit(eventName, {
 									workspaceID: <string>eventData[0],
-									name: <string>eventData[1]
+									name: <string>eventData[1],
 								});
 								break;
 							case "openwindow":
@@ -76,19 +76,19 @@ export default class hyprEvents extends EventEmitter<hyprEventsMap> {
 							case "activewindow":
 								_this.emit(eventName, {
 									class: <string>eventData[0],
-									title: <string>eventData[1]
+									title: <string>eventData[1],
 								});
 								break;
 							case "windowtitlev2":
 								_this.emit(eventName, {
 									windowAddr: <string>eventData[0],
-									title: <string>eventData[1]
+									title: <string>eventData[1],
 								});
 								break;
 							case "screencast":
 								_this.emit(eventName, {
 									arg1: <string>eventData[0],
-									arg2: <string>eventData[1]
+									arg2: <string>eventData[1],
 								});
 								break;
 							default:
@@ -98,7 +98,7 @@ export default class hyprEvents extends EventEmitter<hyprEventsMap> {
 						}
 					}
 				},
-			}
+			},
 		});
 	}
 }
