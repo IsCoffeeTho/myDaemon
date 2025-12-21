@@ -1,40 +1,40 @@
-import { cfg, type oneshotData, type oneshotOptions } from "../config";
+import { cfg, type oneshotOptions } from "../config";
 import hyprEvents from "../hypr/events";
 import type hyprland from "../hypr/hyprland";
 
 type oneshotDescriptor = {
 	class: RegExp;
-	workspace: string;
 	windows: string[];
 };
 
 var oneshots: { [id: string]: oneshotDescriptor } = {};
 
 var currentWorkspace = "";
+var lastNonOneshotWorkspace = "";
 
 export default async function oneshotService(hyprl: hyprland) {
 	const defaultMonitor = hyprl.monitors()[0].name;
 
-	for (var oneshotID in cfg.oneshots) {
-		var oneshotdata = <oneshotData>cfg.oneshots[oneshotID];
-
+	for (var oneshotWorkspace in cfg.oneshots) {
+		var oneshotdata = <oneshotOptions[keyof oneshotOptions]>cfg.oneshots[oneshotWorkspace];
+		
+		const deRegexClassName = oneshotdata.class.replace(/\./g, `\\.`).replace(/\*/g, `.*`);	
 		hyprl
 			.batch()
 			.keyword(
 				"workspace",
-				`name:${oneshotdata.workspace}`,
+				`name:${oneshotWorkspace}`,
 				`monitor:${oneshotdata.prefferedMonitor ?? defaultMonitor}`,
 				"gapsout:0",
 				"gapsin:0",
 				"bordersize:0",
 				"persistent:false",
 			)
-			.keyword("windowrule", `workspace name:${oneshotdata.workspace}`, `class:${oneshotdata.class}`)
+			.keyword("windowrule", `workspace name:${oneshotWorkspace}`, `class:(^${deRegexClassName}$)`)
 			.issue();
 
-		oneshots[oneshotID] = {
+		oneshots[oneshotWorkspace] = {
 			class: new RegExp(`^(${oneshotdata.class})$`),
-			workspace: oneshotdata.workspace,
 			windows: [],
 		};
 	}
@@ -61,8 +61,8 @@ export default async function oneshotService(hyprl: hyprland) {
 	hyprl.events.on("openwindow", handleWindow);
 
 	hyprl.events.on("closewindow", data => {
-		for (var oneshotID in oneshots) {
-			var oneshot = <oneshotDescriptor>oneshots[oneshotID];
+		for (var oneshotWorkspace in oneshots) {
+			var oneshot = <oneshotDescriptor>oneshots[oneshotWorkspace];
 			for (var idx in oneshot.windows) {
 				var applications = <string>oneshot.windows[idx];
 				if (applications != data.windowAddr) continue;
@@ -70,7 +70,7 @@ export default async function oneshotService(hyprl: hyprland) {
 					return v != data.windowAddr;
 				});
 				if (oneshot.windows.length == 0) {
-					if (currentWorkspace == oneshot.workspace) hyprl.dispatch("workspace", "m+1");
+					if (currentWorkspace == oneshotWorkspace) hyprl.dispatch("workspace", `${lastNonOneshotWorkspace ?? "1"}`);
 				}
 				return;
 			}
@@ -79,5 +79,10 @@ export default async function oneshotService(hyprl: hyprland) {
 
 	hyprl.events.on("workspace", data => {
 		currentWorkspace = data.name;
+		for (var oneshotWorkspace in oneshots) {
+			if (oneshotWorkspace == data.name)
+				return;
+		}
+		lastNonOneshotWorkspace = data.name;
 	});
 }

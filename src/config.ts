@@ -5,22 +5,19 @@ export type batteryOptions = {
 	critical: number;
 };
 
-export type oneshotData = {
-	workspace: string;
-	class: string;
-	prefferedMonitor?: string;
-};
-
 export type oneshotOptions = {
-	[oneshot: string]: oneshotData;
+	[oneshotWorkspace: string]: {
+		class: string;
+		prefferedMonitor?: string;
+	};
 };
 
 export type cfgOptions = {
-	battery: Partial<batteryOptions>;
-	oneshots: Partial<oneshotOptions>;
+	battery: batteryOptions;
+	oneshots: oneshotOptions;
 };
 
-export var cfg: Partial<cfgOptions> = {
+export var cfg: cfgOptions = {
 	battery: {
 		low: 10,
 		critical: 5,

@@ -27,7 +27,6 @@ export default async function batteryService(hyprl: hyprland) {
 				obj[(<string>key[0]).trim()] = <string>key[1];
 			}
 		}
-		// console.log(obj);
 		var percent = parseInt(obj["percentage"] ?? "0%");
 		if (obj["state"] == "discharging") {
 			if (percent <= <number>(<any>cfg.battery).CRITICAL && batState < batteryState.CRITICAL) {
