@@ -30,7 +30,7 @@ export default async function oneshotService(hyprl: hyprland) {
 				"bordersize:0",
 				"persistent:false",
 			)
-			.keyword("windowrule", `workspace name:${oneshotWorkspace}`, `class:(^${deRegexClassName}$)`)
+			.keyword("windowrule", `match:class (^${deRegexClassName}$)`, `workspace name:${oneshotWorkspace}`)
 			.issue();
 
 		oneshots[oneshotWorkspace] = {
@@ -44,11 +44,22 @@ export default async function oneshotService(hyprl: hyprland) {
 			var oneshotdata = <oneshotDescriptor>oneshots[oneshotID];
 			if (!oneshotdata.class.test(data.class)) continue;
 			oneshotdata.windows.push(data.windowAddr);
-			break;
+			return;
+		}
+		if (currentWorkspace != lastNonOneshotWorkspace) {
+			console.log(data.class, data.windowAddr, "was opened in", data.workspace);
+			hyprl.dispatch("movetoworkspacesilent", `name:${lastNonOneshotWorkspace},address:0x${data.windowAddr}`);
 		}
 	}
 
 	currentWorkspace = hyprl.activeworkspace().name;
+	lastNonOneshotWorkspace = currentWorkspace;
+	for (var oneshotWorkspace in oneshots) {
+		if (oneshotWorkspace == currentWorkspace) {
+			lastNonOneshotWorkspace = "1";
+			break;
+		}
+	}
 	const openWindows = hyprl.clients();
 	for (var openWindow of openWindows) {
 		handleWindow({
