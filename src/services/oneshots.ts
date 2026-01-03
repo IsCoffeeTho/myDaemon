@@ -17,8 +17,8 @@ export default async function oneshotService(hyprl: hyprland) {
 
 	for (var oneshotWorkspace in cfg.oneshots) {
 		var oneshotdata = <oneshotOptions[keyof oneshotOptions]>cfg.oneshots[oneshotWorkspace];
-		
-		const deRegexClassName = oneshotdata.class.replace(/\./g, `\\.`).replace(/\*/g, `.*`);	
+
+		const deRegexClassName = oneshotdata.class.replace(/\./g, `\\.`).replace(/\*/g, `.*`);
 		hyprl
 			.batch()
 			.keyword(
@@ -91,8 +91,7 @@ export default async function oneshotService(hyprl: hyprland) {
 	hyprl.events.on("workspace", data => {
 		currentWorkspace = data.name;
 		for (var oneshotWorkspace in oneshots) {
-			if (oneshotWorkspace == data.name)
-				return;
+			if (oneshotWorkspace == data.name) return;
 		}
 		lastNonOneshotWorkspace = data.name;
 	});
